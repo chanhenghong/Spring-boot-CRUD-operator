@@ -5,7 +5,6 @@ import com.acleda.crud.entity.Customer;
 import com.acleda.crud.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -34,7 +33,7 @@ public class CustomerController {
         return Rest.builder()
                 .status(true)
                 .code(HttpStatus.OK.value())
-                .message("Customer have been update!")
+                .message("Customer have been updated!")
                 .timestamp(timestamp)
                 .data(customer1)
                 .build();
