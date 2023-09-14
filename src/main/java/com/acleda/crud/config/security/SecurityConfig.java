@@ -1,9 +1,6 @@
 package com.acleda.crud.config.security;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.KeySourceException;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSelector;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -17,15 +14,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.security.KeyPair;
@@ -70,21 +63,40 @@ public class SecurityConfig {
     }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf()
-                .disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/api/customer")
-//                .hasAnyAuthority("SCOPE_READ", "SCOPE_WRITE")
-                .permitAll()
-                .requestMatchers("/**")
-                .permitAll()
-                .anyRequest().authenticated();
+//        http
+//                .csrf()
+//                .disable()
+//                .authorizeHttpRequests()
+//                .requestMatchers("/api/customer")
+////                .hasAnyAuthority("SCOPE_READ", "SCOPE_WRITE")
+//                .permitAll()
+//                .requestMatchers("/**")
+//                .permitAll()
+//                .anyRequest().authenticated();
+//        http.cors();
+//
+////        http.httpBasic();
+//        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer:: jwt);
+//        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.csrf().disable();
         http.cors();
 
-//        http.httpBasic();
-        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer:: jwt);
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.authorizeHttpRequests()
+                .requestMatchers("/api/customer/**")
+                .hasAnyAuthority("SCOPE_READ", "SCOPE_WRITE", "SCOPE_FULL_CONTROL")
+                .requestMatchers("/api/users/**")
+                .hasAuthority("SCOPE_FULL_CONTROL")
+                .requestMatchers("/api/auth/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/api/v1/files/**").permitAll()
+                .anyRequest().authenticated();
+
+        //http.httpBasic();
+        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         return http.build();
     }
@@ -117,13 +129,8 @@ public class SecurityConfig {
 
     @Bean
     public JWKSource<SecurityContext> jwkSource(RSAKey rsaKey){
-        JWKSet jwkSet = new JWKSet();
-        return new JWKSource<SecurityContext>() {
-            @Override
-            public List<JWK> get(JWKSelector jwkSelector, SecurityContext securityContext) throws KeySourceException {
-                return jwkSelector.select(jwkSet);
-            }
-        };
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return (jwkSelector, context) -> jwkSelector.select(jwkSet);
 
     }
     @Bean

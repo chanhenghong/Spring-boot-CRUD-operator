@@ -21,7 +21,7 @@ public class UserController {
     private UserService userService;
     private final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     @PostMapping
-    public Rest<?> saveUser(@RequestBody User user, Role role){
+    public Rest<?> saveUser(@RequestBody User user){
         User user1 = userService.saveUser(user);
         return Rest.builder()
                 .status(true)

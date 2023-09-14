@@ -1,7 +1,6 @@
 package com.acleda.crud.service.impl;
 
 import com.acleda.crud.dto.LoginDto;
-import com.acleda.crud.entity.Role;
 import com.acleda.crud.entity.User;
 import com.acleda.crud.repositorty.UserRepository;
 import com.acleda.crud.service.UserService;
@@ -17,7 +16,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-import java.beans.Encoder;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -54,7 +52,6 @@ public class UserServiceImpl implements UserService {
                 authorities
         );
         daoAuthenticationProvider.authenticate(authentication);
-        log.info("Love::: {}",authentication);
 
         //generate JWT token
         Instant now = Instant.now();
@@ -62,7 +59,6 @@ public class UserServiceImpl implements UserService {
         String scope = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
-        log.info("Scope::: {}",scope);
 
         JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
@@ -71,8 +67,6 @@ public class UserServiceImpl implements UserService {
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .build();
-
-        log.info("JwtClaimSet::: {}",jwtClaimsSet);
 
         return jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
     }

@@ -1,5 +1,6 @@
 package com.acleda.crud.controller;
 
+import com.acleda.crud.base.Rest;
 import com.acleda.crud.dto.LoginDto;
 import com.acleda.crud.dto.RegisterDto;
 import com.acleda.crud.entity.Role;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 @RestController
@@ -33,30 +36,36 @@ import java.util.Collections;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
-    private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
     @Autowired
     private UserService userService;
     @Autowired
     private RoleService roleService;
     private RoleRepository roleRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final DaoAuthenticationProvider daoAuthenticationProvider;
 
     @PostMapping("login")
-    public ResponseEntity<?> login(@RequestBody LoginDto loginDto){
+    public Rest<?> login(@RequestBody LoginDto loginDto){
 
         String token = userService.loing(loginDto);
 
-        return ResponseEntity.ok(token);
+        return Rest.builder()
+                .message("You has been login successfully!")
+                .code(HttpStatus.OK.value())
+                .status(true)
+                .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                .data(token)
+                .build();
     }
 
     @PostMapping("register")
-    public ResponseEntity<?> register(@RequestBody RegisterDto registerDto){
+    public Rest<?> register(@RequestBody RegisterDto registerDto){
         if(userService.existsByUsername(registerDto.getUsername())){
-            return new ResponseEntity<>("Username is taken!", HttpStatus.BAD_REQUEST);
+            return Rest.builder().message("Username is taken!")
+                    .code(HttpStatus.BAD_REQUEST.value())
+                    .status(false)
+                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                    .build();
         }
-        log.info("Heng::: = {}", registerDto);
         User user = new User();
         user.setUsername(registerDto.getUsername());
         user.setPassword(bCryptPasswordEncoder.encode(registerDto.getPassword()));
@@ -66,8 +75,13 @@ public class AuthController {
 
         User user1 = userService.saveUser(user);
 
-//        return new ResponseEntity<>("User registerd successfully!", HttpStatus.OK);
-        return ResponseEntity.ok(user1);
+        return Rest.builder()
+                .message("You has been login successfully!")
+                .code(HttpStatus.OK.value())
+                .status(true)
+                .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                .data(user1)
+                .build();
     }
 
 }
